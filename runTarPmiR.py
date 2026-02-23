@@ -2,11 +2,11 @@ import subprocess
 import shutil
 from os import path
 
-MIRNA_FILE = 'mirnaverified.fasta'
-MRNA_FILE = 'cDNA2.fasta'
+TARPMIR_LOCATION = './TarPmiR_Linux'
+MIRNA_FILE = 'mirnatest.fasta'
+MRNA_FILE = 'cDNA.fasta'
 PROBABILITY_CUTOFF = '0.5'
 TARPMIR_CONDA_ENV = 'TarPmiR'
-
 
 def runTarPmiR(conda_env, miRNA_file, mRNA_file, probability_cutoff):
     args = [
@@ -27,7 +27,7 @@ def runTarPmiR(conda_env, miRNA_file, mRNA_file, probability_cutoff):
         result = subprocess.run(
             command,
             text=True,
-            cwd='/home/nikos/ptixiaki/TarPmiR_Linux',
+            cwd=path.join('/home/nikos/ptixiaki', TARPMIR_LOCATION),
             capture_output=True,
             check=True
         )
