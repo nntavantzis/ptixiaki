@@ -14,7 +14,7 @@ log.basicConfig(
 
 VEP_OUTPUT = 'output.tsv'
 TARPMIR_LOCATION = './TarPmiR_Linux'
-TRANSCRIPT_NUM = 20 # LIMIT TRANSCRIPTS FOR TESTING
+TRANSCRIPT_NUM = 10 # LIMIT TRANSCRIPTS FOR TESTING
 
 
 ###################### FUNCTIONS ######################
@@ -76,7 +76,7 @@ def main():
     # FIXME: EDO KANONIKA GINETAI TARPMIR
         
     log.info('Adding to DataFrame: IDs with found FASTA sequences')
-    with open('./TarPmiR_Linux/cDNA.fasta', 'r', encoding='utf-8') as file:
+    with open('./TarPmiR_Linux/cDNA.fasta', 'r', encoding='utf-8') as file: # FIXME: otan valo to tarpmir kai ta variable file names na allakso to file name edo
         fasta_ids = [line.strip()[1:] for line in file if line.startswith('>')]
     df2.loc[:, 'Sequence_exists'] = df2['Feature'].isin(fasta_ids)
 
@@ -84,7 +84,7 @@ def main():
 
     # FIXME: tha prepei na to ftiakso gia na doulevei me to batch -> na kano merge ola ta results se ena arxeio
     log.info('Loading file to DataFrame: TarPmiR Prediction Output')
-    with open('./TarPmiR_Linux/mirnaverified.fasta_cDNA.fasta.bp', 'r', encoding='utf-8') as file:
+    with open('./TarPmiR_Linux/mirnaverified.fasta_cDNA.fasta.bp', 'r', encoding='utf-8') as file: # FIXME: otan valo to tarpmir kai ta variable file names na allakso to file name edo
         content = file.read()
         content = re.sub(r'(?<=.)hsa', r'\nhsa', content)
     df_pred = pd.read_csv(StringIO(content), sep='\t')
@@ -121,7 +121,7 @@ def main():
     df2.loc[:, 'Disrupted_miRNA'] = df2.apply(findDisrupted, axis=1)
     
     log.info('Exporting modified output file')
-    df2.to_csv('./output_disrupted.tsv', sep='\t', index=False)
+    df2.to_csv('./output_disrupted.tsv', sep='\t', index=False) # FIXME: na valo to filename me vasi to variable filename
     
     log.info('Finished')
     

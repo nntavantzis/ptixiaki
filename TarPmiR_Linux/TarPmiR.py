@@ -11,14 +11,13 @@ try:
 except:
 	from urllib.request import urlopen
 
-import urllib	
+import urllib
 import subprocess
 import pickle 
 import uuid
 import pymysql
 import ssl
 import numpy as np
-
 try:
 	ssl._create_default_https_context = ssl._create_unverified_context
 except:
@@ -30,7 +29,8 @@ try:
 	cur1=db1.cursor()
 	cur1.execute("use hg19")
 except:
-	pass 
+	pass
+
 #---------------------------------------------------------------------
 
 #***********************************************************************
@@ -239,7 +239,6 @@ class File:
 		lf=lf.split(">")[1:]
 		for i in range(len(lf)):
 			lf[i]=lf[i].split('\n')
-			lf[i]=[item.strip() for item in lf[i]]
 			lf[i]=["".join(lf[i][0]),''.join(lf[i][1:])]
 		return lf
 
@@ -276,7 +275,6 @@ class mRNA:
 			lf=lf[2:]
 			lf=[item.split('\t') for item in lf]
 			lf=[item[-1] for item in lf]
-			#pdb.set_trace()	
 			#===
 			try:
 				os.remove("%s_dp.ps"%(sessionID))
@@ -324,9 +322,9 @@ class Interactions:
 		self.m=m
 		
 	def cand_site(self):
-		# ss=self.seed_site()
+		ss=self.seed_site()
 		es=self.energy_site()
-		return es
+		return ss+es
 		
 	def seed_site(self):
 		seed=self.mir.seq[1:16]
@@ -341,15 +339,17 @@ class Interactions:
 		for i in ss:
 			out.append(str(max(0,i-x))+","+str(i+1))
 		return out
-				
-	def energy_site1(self):
+
+	def energy_site(self):
 		S=4
 		C=-15
 		ip_seq=">"+self.mir.name+"\n"+self.mir.seq+"\n"+">"+self.m.name+"\n"+self.m.seq
-		pp1=subprocess.Popen([RNADuplex,"-e", "5", "-s"],stdout=subprocess.PIPE, stdin=subprocess.PIPE,stderr=subprocess.PIPE)
+		ip_seq = ip_seq.encode()
+		pp1=subprocess.Popen([RNAduplex,"-e", "5", "-s"],stdout=subprocess.PIPE, stdin=subprocess.PIPE,stderr=subprocess.PIPE)
 		out,err=pp1.communicate(input=ip_seq)
 		pp1.wait()
 		#pp1.terminate()
+		out=out.decode(encoding='latin1')
 		lf=[item for item in out.split('\n') if len(item)>0]
 		lf=[item.strip() for item in lf if item[0]!=">"]
 		lf=[item.split() for item in lf]
@@ -357,11 +357,10 @@ class Interactions:
 		
 		lf=lf[:S]
 		lf=[item[-2] for item in lf]
-		#pdb.set_trace()
 		return lf
 
-	
-	def energy_site(self):
+
+	def energy_site1(self):
 		cut=120
 		intID=self.mir.name+"_"+self.m.name
 		mir_seq=">"+self.mir.name+"\n"+self.mir.seq
@@ -374,14 +373,12 @@ class Interactions:
 		g.write(m_seq)
 		g.close()
 		
-
 		pp1=subprocess.Popen([miranda,intID+"_mir_seq.txt",intID+"_m_seq.txt","-sc", "120","-en","1"],stdout=subprocess.PIPE, stdin=subprocess.PIPE,stderr=subprocess.PIPE)
 		#out,err=pp1.communicate(input=ip_seq)
 		out,err=pp1.communicate()
 		pp1.wait()
 		
 		try:
-			out=out.decode(encoding='latin1')
 			out=out.split("\n")
 			out=[item for item in out if len(item)>0]
 			out=[item for item in out if item[0]=='>' and item[1]!=">"]
@@ -394,8 +391,6 @@ class Interactions:
 		except:
 			pass 
 		return out
-		
-		
 		
 
 class binding:
@@ -433,7 +428,7 @@ class binding:
 		#pp2.terminate()
 		lf=[item for item in out.split('\n') if len(item)>0]
 		lf=[item.strip() for item in lf if item[0]!=">"]
-		lf=lf[0].split()		
+		lf=lf[0].split()
 		pm=lf[3].split(',')
 		pm=[int(item) for item in pm]
 		pmi=lf[1].split(',')
@@ -461,7 +456,7 @@ class binding:
 		return [en,sp,bb,bm]
 	
 	def hasSeed(self):
-		return self.sp/6
+		return self.sp//6
 		
 	def AU_content(self):
 		t=self.p.split(',')
@@ -563,8 +558,10 @@ class binding:
 		
 #=======================================================================
 
-RNAduplex="ViennaRNA-2.4.17/src/bin/RNAduplex"
-RNAplfold="ViennaRNA-2.4.17/src/bin/RNAplfold"
+# RNAduplex="ViennaRNA-2.4.17/src/bin/RNAduplex"
+# RNAplfold="ViennaRNA-2.4.17/src/bin/RNAplfold"
+RNAduplex='RNAduplex'
+RNAplfold='RNAplfold'
 miranda="miRanda-1.9/bin/miranda"
 
 #=======================================================================
@@ -605,7 +602,7 @@ def main():
 
 	# read in model
 	f=open(mode_path,'rb')
-	RR=pickle.load(f)
+	RR=pickle.load(f, fix_imports=True, encoding='latin1')
 	#=======================================================================
 
 	#pb_cut=0.5 # confidential cut of binding probability
@@ -623,13 +620,11 @@ def main():
 	for i in mRNA_seq:
 		# instance of mRNA class 
 		m=mRNA(i[0],i[-1])
-		#pdb.set_trace()
 		out=[]
 		for j in mir_info:
 			mir=miRNA(j[0],j[-1])
 			ii=Interactions(mir,m)
 			bs=ii.cand_site()
-			#pdb.set_trace()
 			out_bs=[]
 			for k in bs:
 				bijk=binding(mir,m,k)
@@ -639,7 +634,6 @@ def main():
 				if pb>pb_cut:
 					out_bs.append([bijk.mir.name,bijk.m.name,k,str(pb)]+[str(item) for item in F])
 			out_bs=filterBS(out_bs)
-			#pdb.set_trace()
 			out+=out_bs
 		out=['\t'.join(item) for item in out]
 		out='\n'.join(out)
@@ -659,7 +653,6 @@ def main():
 	except:
 		pass 
 	#=============================
-			
-			
+
 if __name__=='__main__':
 	main()
