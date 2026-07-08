@@ -1,8 +1,11 @@
 TarPmiR_Linux/
 benchmark/
 venv/
+output/
 .vscode/
 .python_version
 *.tsv
+*.bp
+*.fasta
 *.code-workspace
 *.log

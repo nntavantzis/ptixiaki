@@ -612,10 +612,13 @@ def main():
 
 	N=len(mRNA_seq)
 	mrna_name=mrna_path.split(os.sep)[-1]
-	if os.path.exists(mir_path+'_'+mrna_name+'.bp'):
-		os.remove(mir_path+'_'+mrna_name+'.bp')
+	output_path = 'output/'+mir_path+'_'+mrna_name+'.bp'
+	if os.path.exists(output_path):
+		os.remove(output_path)
+	if not os.path.exists('output/'):
+		os.mkdir('output')
 	
-	f=open(mir_path+'_'+mrna_name+'.bp','a')
+	f=open(output_path,'a')
 	
 	for i in mRNA_seq:
 		# instance of mRNA class 
