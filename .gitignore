@@ -1,4 +1,8 @@
-*
-!*.py
-!*.ipynb
-!.gitignore
+TarPmiR_Linux/
+benchmark/
+venv/
+.vscode/
+.python_version
+*.tsv
+*.code-workspace
+*.log
