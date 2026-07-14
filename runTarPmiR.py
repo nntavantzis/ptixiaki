@@ -1,12 +1,13 @@
-import subprocess
-from os import path
 import os
-from multiprocessing import Pool
-from functools import partial
-from tempfile import NamedTemporaryFile
-import re
+import argparse
 import logging
+import re
+import subprocess
 import time
+from functools import partial
+from multiprocessing import Pool
+from os import path
+from tempfile import NamedTemporaryFile
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,13 +20,8 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-##### DEFAULT VALUES #####
-PROBABILITY_CUTOFF = '0.5'
-MODEL = 'Human_sklearn_0.22.pkl'
-
-
 ##### FUNCTIONS #####
-def runTarPmiR(miRNA_file:str, mRNA_file:str, probability_cutoff:str=PROBABILITY_CUTOFF, model:str=MODEL) -> None:
+def runTarPmiR(miRNA_file:str, mRNA_file:str, probability_cutoff:str, model:str) -> None:
     '''
     Run instance of TarPmiR with args:\n
     miRNA_file: miRNA FASTA file name\n
@@ -59,7 +55,7 @@ def runTarPmiR(miRNA_file:str, mRNA_file:str, probability_cutoff:str=PROBABILITY
         log.exception(f'PID{os.getpid()} exception occurred: {e}')
 
 
-def runTarPmiRByText(miRNA_file:str, mRNA_text:str, probability_cutoff:str=PROBABILITY_CUTOFF, model:str=MODEL):
+def runTarPmiRByText(miRNA_file:str, mRNA_text:str, probability_cutoff:str, model:str):
     '''
     Run TarPmiR with mRNA FASTA string instead of file name; creates a temporary file with the FASTA string and passes it to runTarPmiR().\n
     miRNA_file: miRNA FASTA file name\n
@@ -77,7 +73,7 @@ def runTarPmiRByText(miRNA_file:str, mRNA_text:str, probability_cutoff:str=PROBA
     return temp.name.split('/')[-1]
 
 
-def batchTarPmiR(processes:int, miRNA_file:str, mRNA_file:str, probability_cutoff:str=PROBABILITY_CUTOFF, model:str=MODEL) -> None:
+def batchTarPmiR(processes:int, miRNA_file:str, mRNA_file:str, probability_cutoff:str, model:str) -> None:
     '''
     Run multiple processes of runTarPmiRByText() on the same mRNA FASTA for faster processing with the following arguments:\n
     processes: Number of processes to create\n
@@ -125,4 +121,13 @@ def batchTarPmiR(processes:int, miRNA_file:str, mRNA_file:str, probability_cutof
     log.info('Batch TarPmiR completed')
 
 
-batchTarPmiR(10, 'mirnatest.fasta', 'benchMRNA.fasta')
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Run TarPmiR in batch mode')
+    parser.add_argument('-mrna', type=str, required=True, help='mRNA file')
+    parser.add_argument('-mirna', type=str, default='mature_hsa.fa', help='miRNA file')
+    parser.add_argument('-pcut', type=str, default='0.5', help='Probability cutoff')
+    parser.add_argument('-model', type=str, default='Human_sklearn_0.22.pkl', help='Model filename')
+    parser.add_argument('-num', type=int, default=20, help='Number of processes')
+
+    args = parser.parse_args()
+    batchTarPmiR(args.num, args.mirna, args.mrna, args.pcut, args.model)
