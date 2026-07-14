@@ -1,16 +1,20 @@
 import pandas as pd
 import requests
 import re
-import logging as log
+import logging
 from os import path
 from io import StringIO
 
-log.basicConfig(
-    level=log.INFO,
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    filename='run.log',
-    filemode='a'
+    handlers=[
+        logging.FileHandler('run.log'),
+        logging.StreamHandler()
+    ]
 )
+log = logging.getLogger(__name__)
 
 VEP_OUTPUT = 'output.tsv'
 TARPMIR_LOCATION = './TarPmiR_Linux'
@@ -19,7 +23,7 @@ TRANSCRIPT_NUM = 10 # LIMIT TRANSCRIPTS FOR TESTING
 
 ###################### FUNCTIONS ######################
 
-def getTranscriptsFromIDs(idList: list[str]) -> str:
+def getTranscriptsFromIDs(idList: 'list[str]') -> str:
     log.info(f'Trying to GET sequences of {len(idList)} IDs')
     query_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
                 <!DOCTYPE Query>
