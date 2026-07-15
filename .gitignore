@@ -1,6 +1,6 @@
-TarPmiR_Linux/
 benchmark/
 venv/
+__pycache__/
 output/
 .vscode/
 .python_version
