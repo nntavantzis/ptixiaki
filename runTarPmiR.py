@@ -118,7 +118,7 @@ def batchTarPmiR(processes:int, miRNA_file:str, mRNA_file:str, probability_cutof
             if tempFile != tempFiles[-1]:
                 output.write('\n')
             os.remove(fileName)
-    log.info('Batch TarPmiR completed')
+    log.info(f'Batch TarPmiR completed, output written to file {miRNA_file}_{mRNA_file}.bp')
 
 
 if __name__ == '__main__':
