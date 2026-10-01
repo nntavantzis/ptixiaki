@@ -130,7 +130,7 @@ if __name__ == '__main__':
         if hits.empty:
             return None
 
-        return ','.join(sorted(hits['miRNA'].unique()))
+        return ';'.join(sorted(hits['miRNA'].unique()))
     
     
     log.info('Editing Dataframe: Adding miRNAs that are disrupted to respective IDs')
@@ -139,5 +139,15 @@ if __name__ == '__main__':
     log.info('Exporting output file')
     df.to_csv(f'output/{OUTPUT_FILE}', sep='\t', index=False)
     
-    log.info(f'Finished, output written to file {OUTPUT_FILE}')
+
+    log.info('Cleaning duplicate entries of mRNAs/miRNAs')
+    df_clean = df[df['Disrupted_miRNA'].notna()].groupby('Gene')['Disrupted_miRNA'].apply(
+        lambda x: ';'.join(sorted(set(';'.join(x).split(';'))))
+    ).reset_index()
+    
+    log.info('Exporting clean output file')
+    df_clean.to_csv(f'output/clean_{OUTPUT_FILE}', sep='\t', index=False)
+    
+    
+    log.info(f'Finished, output written to file {OUTPUT_FILE}, clean output written to file clean_{OUTPUT_FILE}')
 
